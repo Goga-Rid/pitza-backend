@@ -43,12 +43,8 @@ jobs:
             sleep 2
           done
 
-      - name: Создание тестовой базы данных
-        run: |
-          psql -h localhost -U postgres -c "CREATE DATABASE pitza_test;"
-
-      - name: Применение миграций
-        run: diesel migration run --database-url=$TEST_DATABASE_URL
+      - name: Сброс и наполнение тестовой базы из дампа
+        run: make reset-test-db
 
       - name: Форматирование
         run: cargo fmt -- --check
@@ -59,5 +55,5 @@ jobs:
       - name: Сборка
         run: cargo build --release
 
-      - name: Тесты                                                                         
+      - name: Тесты
         run: cargo test --all

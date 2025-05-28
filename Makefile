@@ -1,7 +1,10 @@
 export TEST_DATABASE_URL=postgres://postgres:postgres@localhost/pitza_test
 
-test:
-	cargo test --test test_api
+test: reset-test-db
+	cargo test
+
+clean:
+	cargo clean
 
 lint:
 	cargo clippy -- -D warnings
@@ -20,5 +23,14 @@ delete-db:
 
 check-db:
 	psql -h localhost -U postgres -d pitza_test -c "\dt"
+
+import-dump:
+	psql -h localhost -U postgres -d pitza_test -f migrations/hexlet.sql
+
+
+fix-sequences:
+	psql -h localhost -U postgres -d pitza_test -c "SELECT setval('users_id_seq', (SELECT MAX(id) FROM users));"
+
+reset-test-db: delete-db setup-db import-dump fix-sequences
 
 all: fmt lint test

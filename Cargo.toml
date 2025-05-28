@@ -4,8 +4,8 @@ version = "0.1.0"
 edition = "2021"
 
 [dependencies]
-actix-web = "4"
-actix-rt = "2"
+actix-web = "4.0"
+actix-rt = "2.0"
 diesel = { version = "2", features = ["postgres", "r2d2", "chrono", "numeric"] }
 bigdecimal = { version = "0.4", features = ["serde"] }
 dotenvy = "0.15"
@@ -25,3 +25,6 @@ actix-cors = "0.6"
 
 [dependencies.actix-service]
 version = "2"
+
+[dev-dependencies]
+uuid = { version = "1", features = ["v4"] }
