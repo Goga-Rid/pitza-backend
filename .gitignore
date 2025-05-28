@@ -1,4 +1,5 @@
 migrations/
 target/
 .env
+.env.test
 Cargo.lock

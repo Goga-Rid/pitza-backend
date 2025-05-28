@@ -1,4 +1,3 @@
-// === models.rs ===
 use diesel::prelude::*;
 use serde::{Serialize, Deserialize};
 use chrono::NaiveDateTime;
@@ -19,7 +18,7 @@ pub struct User {
 }
 
 #[derive(Insertable, Deserialize)]
-#[table_name = "users"]
+#[diesel(table_name = users)]
 pub struct NewUser {
     pub email: String,
     pub password: String,
@@ -29,7 +28,7 @@ pub struct NewUser {
 
 // PRODUCTS
 #[derive(Queryable, Identifiable, Serialize)]
-#[table_name = "products"]
+#[diesel(table_name = products)]
 pub struct Product {
     pub id: i32,
     pub name: String,
@@ -42,7 +41,7 @@ pub struct Product {
 }
 
 #[derive(Insertable, Deserialize, AsChangeset)]
-#[table_name = "products"]
+#[diesel(table_name = products)]
 pub struct NewProduct {
     pub name: String,
     pub description: Option<String>,
@@ -54,9 +53,9 @@ pub struct NewProduct {
 
 // FAVORITES
 #[derive(Queryable, Identifiable, Associations, Serialize)]
-#[belongs_to(User)]
-#[belongs_to(Product)]
-#[table_name = "favorites"]
+#[diesel(belongs_to(User))]
+#[diesel(belongs_to(Product))]
+#[diesel(table_name = favorites)]
 pub struct Favorite {
     pub id: i32,
     pub user_id: i32,
@@ -64,7 +63,7 @@ pub struct Favorite {
 }
 
 #[derive(Insertable, Deserialize, Serialize)]
-#[table_name = "favorites"]
+#[diesel(table_name = favorites)]
 pub struct NewFavorite {
     pub user_id: i32,
     pub product_id: i32,
@@ -72,8 +71,8 @@ pub struct NewFavorite {
 
 // ORDERS
 #[derive(Queryable, Identifiable, Associations, Serialize, Deserialize)]
-#[belongs_to(User)]
-#[table_name = "orders"]
+#[diesel(belongs_to(User))]
+#[diesel(table_name = orders)]
 pub struct Order {
     pub id: i32,
     pub user_id: i32,
@@ -84,7 +83,7 @@ pub struct Order {
 }
 
 #[derive(Insertable, Deserialize)]
-#[table_name = "orders"]
+#[diesel(table_name = orders)]
 pub struct NewOrder {
     pub user_id: i32,
     pub total: BigDecimal,
@@ -94,8 +93,8 @@ pub struct NewOrder {
 
 // ORDER ITEMS
 #[derive(Queryable, Identifiable, Associations, Serialize, Deserialize)]
-#[belongs_to(Order)]
-#[table_name = "order_items"]
+#[diesel(belongs_to(Order))]
+#[diesel(table_name = order_items)]
 pub struct OrderItem {
     pub id: i32,
     pub order_id: i32,
@@ -105,7 +104,7 @@ pub struct OrderItem {
 }
 
 #[derive(Insertable, Deserialize)]
-#[table_name = "order_items"]
+#[diesel(table_name = order_items)]
 pub struct NewOrderItem {
     pub order_id: i32,
     pub product_id: i32,
@@ -115,9 +114,9 @@ pub struct NewOrderItem {
 
 // REVIEWS
 #[derive(Queryable, Identifiable, Associations, Serialize)]
-#[belongs_to(User)]
-#[belongs_to(Product)]
-#[table_name = "reviews"]
+#[diesel(belongs_to(User))]
+#[diesel(belongs_to(Product))]
+#[diesel(table_name = reviews)]
 pub struct Review {
     pub id: i32,
     pub user_id: i32,
@@ -128,7 +127,7 @@ pub struct Review {
 }
 
 #[derive(Insertable, Deserialize, Serialize)]
-#[table_name = "reviews"]
+#[diesel(table_name = reviews)]
 pub struct NewReview {
     pub user_id: i32,
     pub product_id: i32,
@@ -138,9 +137,9 @@ pub struct NewReview {
 
 // COMPLAINTS
 #[derive(Queryable, Identifiable, Associations, Serialize)]
-#[belongs_to(User)]
-#[belongs_to(Order)]
-#[table_name = "complaints"]
+#[diesel(belongs_to(User))]
+#[diesel(belongs_to(Order))]
+#[diesel(table_name = complaints)]
 pub struct Complaint {
     pub id: i32,
     pub order_id: i32,
@@ -151,11 +150,10 @@ pub struct Complaint {
 }
 
 #[derive(Insertable, Deserialize)]
-#[table_name = "complaints"]
+#[diesel(table_name = complaints)]
 pub struct NewComplaint {
     pub order_id: i32,
     pub user_id: i32,
     pub reason: String,
     pub comment: Option<String>,
 }
-

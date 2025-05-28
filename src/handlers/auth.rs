@@ -9,7 +9,7 @@ use std::env;
 
 use crate::models::{User, NewUser};
 use crate::schema::users::dsl::*;
-use crate::DbPool;
+use crate::db::DbPool;
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct Claims {

@@ -1,5 +1,5 @@
 [package]
-name = "pizza_delivery_backend"
+name = "pitza_backend"
 version = "0.1.0"
 edition = "2021"
 
@@ -7,7 +7,7 @@ edition = "2021"
 actix-web = "4"
 actix-rt = "2"
 diesel = { version = "2", features = ["postgres", "r2d2", "chrono", "numeric"] }
-bigdecimal = { version = "0.3", features = ["serde"] }
+bigdecimal = { version = "0.4", features = ["serde"] }
 dotenvy = "0.15"
 serde = { version = "1", features = ["derive"] }
 serde_json = "1"

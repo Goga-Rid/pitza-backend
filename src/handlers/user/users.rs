@@ -5,7 +5,7 @@ use crate::models::User;
 use crate::schema::users;
 use diesel::prelude::*;
 use crate::handlers::auth::Claims;
-use crate::DbPool;
+use crate::db::DbPool;
 use serde::Deserialize;
 
 #[get("/api/me")]

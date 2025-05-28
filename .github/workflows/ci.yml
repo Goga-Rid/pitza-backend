@@ -1,0 +1,63 @@
+name: Rust CI
+
+on: [push]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:15
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: postgres
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd="pg_isready -U postgres"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=5
+
+    env:
+      DATABASE_URL: postgres://postgres:postgres@localhost:5432/pitza_test
+      TEST_DATABASE_URL: postgres://postgres:postgres@localhost:5432/pitza_test
+
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Установка Rust
+        uses: actions-rs/toolchain@v1
+        with:
+          toolchain: stable
+          override: true
+
+      - name: Установка diesel_cli
+        run: cargo install diesel_cli --no-default-features --features postgres
+
+      - name: Ожидание запуска Postgres
+        run: |
+          for i in {1..10}; do
+            pg_isready -h localhost -U postgres && break
+            sleep 2
+          done
+
+      - name: Создание тестовой базы данных
+        run: |
+          psql -h localhost -U postgres -c "CREATE DATABASE pitza_test;"
+
+      - name: Применение миграций
+        run: diesel migration run --database-url=$TEST_DATABASE_URL
+
+      - name: Форматирование
+        run: cargo fmt -- --check
+
+      - name: Линтер
+        run: cargo clippy -- -D warnings
+
+      - name: Сборка
+        run: cargo build --release
+
+      - name: Тесты                                                                         
+        run: cargo test --all
