@@ -1,8 +1,8 @@
-use diesel::prelude::*;
-use serde::{Serialize, Deserialize};
-use chrono::NaiveDateTime;
-use bigdecimal::BigDecimal;
 use crate::schema::*;
+use bigdecimal::BigDecimal;
+use chrono::NaiveDateTime;
+use diesel::prelude::*;
+use serde::{Deserialize, Serialize};
 
 // USERS
 #[derive(Queryable, Serialize)]

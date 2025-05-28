@@ -1,18 +1,16 @@
+use actix_cors::Cors;
 use actix_web::{middleware::Logger, web, App, HttpServer};
 use dotenvy::dotenv;
 use env_logger::Env;
 use middleware::auth::AuthMiddleware;
 use std::env;
-use actix_cors::Cors;
 
 mod db;
-mod schema;
-mod models;
 mod handlers;
 mod middleware;
+mod models;
+mod schema;
 mod utils;
-
-type DbPool = diesel::r2d2::Pool<diesel::r2d2::ConnectionManager<diesel::PgConnection>>;
 
 #[actix_web::main]
 async fn main() -> std::io::Result<()> {
@@ -21,7 +19,7 @@ async fn main() -> std::io::Result<()> {
 
     // Ensure JWT_SECRET is set
     env::var("JWT_SECRET").expect("JWT_SECRET must be set");
-    
+
     let database_url = env::var("DATABASE_URL").expect("DATABASE_URL must be set");
     let pool = db::init_pool(&database_url);
 
@@ -49,14 +47,14 @@ async fn main() -> std::io::Result<()> {
             .service(handlers::admin::products::get_products)
             .service(handlers::admin::products::create_product)
             .service(handlers::admin::products::delete_product)
-            .service(handlers::admin::products::update_product) 
+            .service(handlers::admin::products::update_product)
             // Order routes
             .service(handlers::admin::orders::get_orders)
             .service(handlers::admin::orders::get_order)
             .service(handlers::admin::orders::get_order_with_items)
             .service(handlers::admin::orders::update_order)
             .service(handlers::admin::orders::delete_order)
-            .service(handlers::admin::orders::delete_order_item)    
+            .service(handlers::admin::orders::delete_order_item)
             // User routes
             .service(handlers::user::products::get_products)
             .service(handlers::user::users::get_me)
@@ -72,7 +70,7 @@ async fn main() -> std::io::Result<()> {
             // validate token
             .service(handlers::auth::validate_token)
     })
-    .bind(("0.0.0.0", 8081))?
+    .bind(("0.0.0.0", 8080))?
     .run()
     .await
 }

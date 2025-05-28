@@ -1,10 +1,10 @@
-use actix_web::{delete, get, post, put, web, HttpResponse, Result, HttpRequest};
-use diesel::prelude::*;
-use crate::models::{Product, NewProduct};
-use crate::schema::products;
 use crate::db::DbPool;
-use std::collections::HashMap;
+use crate::models::{NewProduct, Product};
+use crate::schema::products;
 use crate::utils::is_admin;
+use actix_web::{delete, get, post, put, web, HttpRequest, HttpResponse, Result};
+use diesel::prelude::*;
+use std::collections::HashMap;
 
 #[get("/api/admin/products")]
 pub async fn get_products(pool: web::Data<DbPool>, req: HttpRequest) -> Result<HttpResponse> {
@@ -12,11 +12,12 @@ pub async fn get_products(pool: web::Data<DbPool>, req: HttpRequest) -> Result<H
         return Ok(HttpResponse::Unauthorized().body("Unauthorized"));
     }
     let mut conn = pool.get().unwrap();
-    let products: Vec<Product> = products::table.load(&mut conn).unwrap();    
+    let products: Vec<Product> = products::table.load(&mut conn).unwrap();
 
     let mut grouped: HashMap<String, Vec<Product>> = HashMap::new();
     for product in products {
-        grouped.entry(product.category.clone())
+        grouped
+            .entry(product.category.clone())
             .or_default()
             .push(product);
     }
@@ -28,7 +29,7 @@ pub async fn get_products(pool: web::Data<DbPool>, req: HttpRequest) -> Result<H
 pub async fn create_product(
     pool: web::Data<DbPool>,
     product: web::Json<NewProduct>,
-    req: HttpRequest
+    req: HttpRequest,
 ) -> Result<HttpResponse> {
     if !is_admin(&req) {
         return Ok(HttpResponse::Unauthorized().body("Unauthorized"));
@@ -48,7 +49,7 @@ pub async fn update_product(
     pool: web::Data<DbPool>,
     path: web::Path<i32>,
     data: web::Json<NewProduct>,
-    req: HttpRequest
+    req: HttpRequest,
 ) -> Result<HttpResponse> {
     if !is_admin(&req) {
         return Ok(HttpResponse::Unauthorized().body("Unauthorized"));
@@ -68,7 +69,7 @@ pub async fn update_product(
 pub async fn delete_product(
     pool: web::Data<DbPool>,
     path: web::Path<i32>,
-    req: HttpRequest
+    req: HttpRequest,
 ) -> Result<HttpResponse> {
     if !is_admin(&req) {
         return Ok(HttpResponse::Unauthorized().body("Unauthorized"));

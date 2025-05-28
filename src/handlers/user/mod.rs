@@ -1,5 +1,5 @@
-pub mod products;
-pub mod orders;
-pub mod users;
-pub mod reviews;
 pub mod favorites;
+pub mod orders;
+pub mod products;
+pub mod reviews;
+pub mod users;

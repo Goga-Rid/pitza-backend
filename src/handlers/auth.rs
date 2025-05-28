@@ -1,15 +1,15 @@
-use actix_web::{web, HttpResponse, Responder, HttpRequest, post, get};
-use diesel::prelude::*;
-use serde::{Deserialize, Serialize};
-use jsonwebtoken::{encode, decode, Header, EncodingKey, DecodingKey, Validation};
-use argon2::{Argon2, PasswordHash, PasswordVerifier, PasswordHasher};
+use actix_web::{get, post, web, HttpRequest, HttpResponse, Responder};
 use argon2::password_hash::SaltString;
-use chrono::{Utc, Duration};
+use argon2::{Argon2, PasswordHash, PasswordHasher, PasswordVerifier};
+use chrono::{Duration, Utc};
+use diesel::prelude::*;
+use jsonwebtoken::{decode, encode, DecodingKey, EncodingKey, Header, Validation};
+use serde::{Deserialize, Serialize};
 use std::env;
 
-use crate::models::{User, NewUser};
-use crate::schema::users::dsl::*;
 use crate::db::DbPool;
+use crate::models::{NewUser, User};
+use crate::schema::users::dsl::*;
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct Claims {
@@ -105,10 +105,7 @@ pub async fn register(
 }
 
 #[post("/api/login")]
-pub async fn login(
-    pool: web::Data<DbPool>,
-    login_data: web::Json<LoginUser>,
-) -> impl Responder {
+pub async fn login(pool: web::Data<DbPool>, login_data: web::Json<LoginUser>) -> impl Responder {
     let mut conn = pool.get().expect("couldn't get db connection from pool");
 
     let user = match users
@@ -155,8 +152,9 @@ pub async fn login(
         &Header::default(),
         &claims,
         &EncodingKey::from_secret(secret.as_bytes()),
-    ).unwrap();
-    
+    )
+    .unwrap();
+
     HttpResponse::Ok().json(AuthResponse {
         token,
         user_id: user.id,
@@ -166,14 +164,18 @@ pub async fn login(
 #[get("/validate")]
 pub async fn validate_token(req: HttpRequest) -> impl Responder {
     let auth_header = req.headers().get("Authorization");
-    
+
     if auth_header.is_none() {
         return HttpResponse::Unauthorized().json(serde_json::json!({
             "error": "No token provided"
         }));
     }
 
-    let token = auth_header.unwrap().to_str().unwrap().replace("Bearer ", "");
+    let token = auth_header
+        .unwrap()
+        .to_str()
+        .unwrap()
+        .replace("Bearer ", "");
     let secret = env::var("JWT_SECRET").expect("JWT_SECRET must be set");
 
     match decode::<Claims>(

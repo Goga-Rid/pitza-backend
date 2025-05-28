@@ -1,17 +1,16 @@
+use crate::db::DbPool;
+use crate::models::{Order, OrderItem};
+use crate::schema::{order_items, orders};
+use crate::utils::is_admin;
 use actix_web::HttpRequest;
-use actix_web::{get, put, web, HttpResponse, delete, Result};
+use actix_web::{delete, get, put, web, HttpResponse, Result};
+use bigdecimal::BigDecimal;
 use diesel::prelude::*;
 use serde::Deserialize;
 use serde::Serialize;
-use crate::models::{Order, OrderItem};
-use crate::db::DbPool;
-use crate::schema::{order_items, orders};
-use bigdecimal::BigDecimal;
-use crate::utils::is_admin;
 
 #[get("/api/admin/orders")]
 pub async fn get_orders(pool: web::Data<DbPool>, req: HttpRequest) -> Result<HttpResponse> {
-    
     if !is_admin(&req) {
         return Ok(HttpResponse::Unauthorized().body("Unauthorized"));
     }
@@ -21,12 +20,19 @@ pub async fn get_orders(pool: web::Data<DbPool>, req: HttpRequest) -> Result<Htt
 }
 
 #[get("/api/admin/orders/{id}")]
-pub async fn get_order(pool: web::Data<DbPool>, path: web::Path<i32>, req: HttpRequest) -> Result<HttpResponse> {
+pub async fn get_order(
+    pool: web::Data<DbPool>,
+    path: web::Path<i32>,
+    req: HttpRequest,
+) -> Result<HttpResponse> {
     if !is_admin(&req) {
         return Ok(HttpResponse::Unauthorized().body("Unauthorized"));
     }
     let mut conn = pool.get().unwrap();
-    let order: Order = orders::table.find(path.into_inner()).first(&mut conn).unwrap();
+    let order: Order = orders::table
+        .find(path.into_inner())
+        .first(&mut conn)
+        .unwrap();
     Ok(HttpResponse::Ok().json(order))
 }
 
@@ -38,16 +44,26 @@ pub struct OrderWithItems {
 
 // get order items
 #[get("/api/admin/orders/{id}/items")]
-pub async fn get_order_with_items(pool: web::Data<DbPool>, path: web::Path<i32>, req: HttpRequest) -> Result<HttpResponse> {
+pub async fn get_order_with_items(
+    pool: web::Data<DbPool>,
+    path: web::Path<i32>,
+    req: HttpRequest,
+) -> Result<HttpResponse> {
     if !is_admin(&req) {
         return Ok(HttpResponse::Unauthorized().body("Unauthorized"));
     }
     let mut conn = pool.get().unwrap();
     let order_id = path.into_inner();
-    let order: Order = orders::table.find(order_id).first(&mut conn).unwrap();  
-    let order_items: Vec<OrderItem> = order_items::table.filter(order_items::order_id.eq(order_id)).load(&mut conn).unwrap();
-    Ok(HttpResponse::Ok().json(OrderWithItems { order, items: order_items }))
-}  
+    let order: Order = orders::table.find(order_id).first(&mut conn).unwrap();
+    let order_items: Vec<OrderItem> = order_items::table
+        .filter(order_items::order_id.eq(order_id))
+        .load(&mut conn)
+        .unwrap();
+    Ok(HttpResponse::Ok().json(OrderWithItems {
+        order,
+        items: order_items,
+    }))
+}
 
 #[derive(Deserialize)]
 pub struct EditOrder {
@@ -64,13 +80,18 @@ pub struct EditOrderItem {
 }
 
 #[put("/api/admin/orders/{id}")]
-pub async fn update_order(pool: web::Data<DbPool>, path: web::Path<i32>, data: web::Json<EditOrder>, req: HttpRequest) -> Result<HttpResponse> {
+pub async fn update_order(
+    pool: web::Data<DbPool>,
+    path: web::Path<i32>,
+    data: web::Json<EditOrder>,
+    req: HttpRequest,
+) -> Result<HttpResponse> {
     if !is_admin(&req) {
         return Ok(HttpResponse::Unauthorized().body("Unauthorized"));
     }
-    let mut conn = pool.get().unwrap(); 
+    let mut conn = pool.get().unwrap();
     let order_id = path.into_inner();
-    
+
     // Update order if fields are provided
     if data.status.is_some() || data.address.is_some() {
         if let Some(status) = &data.status {
@@ -92,20 +113,24 @@ pub async fn update_order(pool: web::Data<DbPool>, path: web::Path<i32>, data: w
         for item in items {
             if let Some(product_id) = item.product_id {
                 if let Some(quantity) = item.quantity {
-                    diesel::update(order_items::table
-                        .filter(order_items::order_id.eq(order_id))
-                        .filter(order_items::product_id.eq(product_id)))
-                        .set(order_items::quantity.eq(quantity))
-                        .execute(&mut conn)
-                        .unwrap();
+                    diesel::update(
+                        order_items::table
+                            .filter(order_items::order_id.eq(order_id))
+                            .filter(order_items::product_id.eq(product_id)),
+                    )
+                    .set(order_items::quantity.eq(quantity))
+                    .execute(&mut conn)
+                    .unwrap();
                 }
                 if let Some(price) = &item.price {
-                    diesel::update(order_items::table
-                        .filter(order_items::order_id.eq(order_id))
-                        .filter(order_items::product_id.eq(product_id)))
-                        .set(order_items::price.eq(price))
-                        .execute(&mut conn)
-                        .unwrap();
+                    diesel::update(
+                        order_items::table
+                            .filter(order_items::order_id.eq(order_id))
+                            .filter(order_items::product_id.eq(product_id)),
+                    )
+                    .set(order_items::price.eq(price))
+                    .execute(&mut conn)
+                    .unwrap();
                 }
             }
         }
@@ -127,39 +152,60 @@ pub async fn update_order(pool: web::Data<DbPool>, path: web::Path<i32>, data: w
             .unwrap();
     }
 
-    let updated_order = orders::table.find(order_id).first::<Order>(&mut conn).unwrap();
+    let updated_order = orders::table
+        .find(order_id)
+        .first::<Order>(&mut conn)
+        .unwrap();
     let order_items = order_items::table
         .filter(order_items::order_id.eq(order_id))
         .load::<OrderItem>(&mut conn)
         .unwrap();
 
-    Ok(HttpResponse::Ok().json(OrderWithItems { 
-        order: updated_order, 
-        items: order_items 
+    Ok(HttpResponse::Ok().json(OrderWithItems {
+        order: updated_order,
+        items: order_items,
     }))
 }
 
 #[delete("/api/admin/orders/{id}")]
-pub async fn delete_order(pool: web::Data<DbPool>, path: web::Path<i32>, req: HttpRequest) -> Result<HttpResponse> {
+pub async fn delete_order(
+    pool: web::Data<DbPool>,
+    path: web::Path<i32>,
+    req: HttpRequest,
+) -> Result<HttpResponse> {
     if !is_admin(&req) {
         return Ok(HttpResponse::Unauthorized().body("Unauthorized"));
     }
     let mut conn = pool.get().unwrap();
     let order_id = path.into_inner();
-    diesel::delete(orders::table.find(order_id)).execute(&mut conn).unwrap();
-    diesel::delete(order_items::table.filter(order_items::order_id.eq(order_id))).execute(&mut conn).unwrap();
+    diesel::delete(orders::table.find(order_id))
+        .execute(&mut conn)
+        .unwrap();
+    diesel::delete(order_items::table.filter(order_items::order_id.eq(order_id)))
+        .execute(&mut conn)
+        .unwrap();
     Ok(HttpResponse::Ok().json(order_id))
 }
 
 // delete order item
 #[delete("/api/admin/orders/{id}/items/{item_id}")]
-pub async fn delete_order_item(pool: web::Data<DbPool>, path: web::Path<(i32, i32)>, req: HttpRequest) -> Result<HttpResponse> {
+pub async fn delete_order_item(
+    pool: web::Data<DbPool>,
+    path: web::Path<(i32, i32)>,
+    req: HttpRequest,
+) -> Result<HttpResponse> {
     if !is_admin(&req) {
         return Ok(HttpResponse::Unauthorized().body("Unauthorized"));
     }
     let mut conn = pool.get().unwrap();
     let (order_id, item_id) = path.into_inner();
-    diesel::delete(order_items::table.filter(order_items::order_id.eq(order_id)).filter(order_items::id.eq(item_id))).execute(&mut conn).unwrap();
+    diesel::delete(
+        order_items::table
+            .filter(order_items::order_id.eq(order_id))
+            .filter(order_items::id.eq(item_id)),
+    )
+    .execute(&mut conn)
+    .unwrap();
     // Recalculate total price
     let order_items = order_items::table
         .filter(order_items::order_id.eq(order_id))
@@ -177,4 +223,4 @@ pub async fn delete_order_item(pool: web::Data<DbPool>, path: web::Path<(i32, i3
         .unwrap();
 
     Ok(HttpResponse::Ok().json(order_id))
-}   
+}

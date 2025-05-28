@@ -1,5 +1,5 @@
 # Этап сборки
-FROM rust:1.76 as builder
+FROM rust:1.82 as builder
 WORKDIR /app
 
 # Копируем файлы зависимостей и устанавливаем их (кэширование)

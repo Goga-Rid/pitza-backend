@@ -1,11 +1,14 @@
-use actix_service::{Service, Transform};
-use actix_web::{dev::{ServiceRequest, ServiceResponse}, Error, HttpMessage};
-use futures_util::future::{ok, Ready, LocalBoxFuture};
-use futures_util::FutureExt;
-use std::rc::Rc;
-use jsonwebtoken::{decode, Validation, DecodingKey, TokenData};
-use std::env;
 use crate::handlers::auth::Claims;
+use actix_service::{Service, Transform};
+use actix_web::{
+    dev::{ServiceRequest, ServiceResponse},
+    Error, HttpMessage,
+};
+use futures_util::future::{ok, LocalBoxFuture, Ready};
+use futures_util::FutureExt;
+use jsonwebtoken::{decode, DecodingKey, TokenData, Validation};
+use std::env;
+use std::rc::Rc;
 
 pub struct AuthMiddleware;
 
@@ -54,19 +57,16 @@ where
             return async move {
                 let res = fut.await?;
                 Ok(res)
-            }.boxed_local();
+            }
+            .boxed_local();
         }
 
         if let Some(auth_header) = req.headers().get("Authorization") {
             if let Ok(auth_str) = auth_header.to_str() {
                 if auth_str.starts_with("Bearer ") {
                     let token = auth_str.trim_start_matches("Bearer ");
-                    match decode_jwt(token) {
-                        Ok(token_data) => {
-                            req.extensions_mut().insert(token_data.claims);
-                        },
-                        Err(_) => {
-                        }
+                    if let Ok(token_data) = decode_jwt(token) {
+                        req.extensions_mut().insert(token_data.claims);
                     }
                 }
             }
@@ -76,7 +76,8 @@ where
         async move {
             let res = fut.await?;
             Ok(res)
-        }.boxed_local()
+        }
+        .boxed_local()
     }
 }
 
@@ -85,7 +86,7 @@ pub fn decode_jwt(token: &str) -> Result<TokenData<Claims>, jsonwebtoken::errors
     decode::<Claims>(
         token,
         &DecodingKey::from_secret(secret.as_bytes()),
-        &Validation::default()
+        &Validation::default(),
     )
 }
 

@@ -3,4 +3,4 @@ pub mod handlers;
 pub mod middleware;
 pub mod models;
 pub mod schema;
-pub mod utils; 
+pub mod utils;

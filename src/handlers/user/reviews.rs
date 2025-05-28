@@ -1,9 +1,9 @@
+use crate::db::DbPool;
+use crate::handlers::auth::Claims;
 use crate::models::{NewReview, Review};
 use crate::schema::reviews;
-use crate::db::DbPool;
-use actix_web::{post, get,  web, HttpMessage, HttpRequest, HttpResponse, Responder};
+use actix_web::{get, post, web, HttpMessage, HttpRequest, HttpResponse, Responder};
 use diesel::prelude::*;
-use crate::handlers::auth::Claims;
 use serde::Deserialize;
 
 #[derive(Deserialize)]
@@ -11,10 +11,14 @@ pub struct CreateReview {
     pub product_id: i32,
     pub rating: i32,
     pub comment: Option<String>,
-}   
+}
 
 #[post("/api/user/reviews")]
-pub async fn create_review(req: HttpRequest, pool: web::Data<DbPool>, review: web::Json<CreateReview>) -> impl Responder {
+pub async fn create_review(
+    req: HttpRequest,
+    pool: web::Data<DbPool>,
+    review: web::Json<CreateReview>,
+) -> impl Responder {
     let mut conn = pool.get().expect("couldn't get db connection from pool");
     let extensions = req.extensions();
     let claims = extensions.get::<Claims>().unwrap();
@@ -29,13 +33,16 @@ pub async fn create_review(req: HttpRequest, pool: web::Data<DbPool>, review: we
     diesel::insert_into(reviews::table)
         .values(&new_review)
         .execute(&mut conn)
-        .unwrap();  
+        .unwrap();
 
     HttpResponse::Ok().json(new_review)
 }
 
 #[get("/api/user/reviews/{product_id}")]
-pub async fn get_reviews_by_product( pool: web::Data<DbPool>, path: web::Path<i32>) -> impl Responder {
+pub async fn get_reviews_by_product(
+    pool: web::Data<DbPool>,
+    path: web::Path<i32>,
+) -> impl Responder {
     let mut conn = pool.get().expect("couldn't get db connection from pool");
 
     let reviews = reviews::table
@@ -44,4 +51,4 @@ pub async fn get_reviews_by_product( pool: web::Data<DbPool>, path: web::Path<i3
         .unwrap();
 
     HttpResponse::Ok().json(reviews)
-}   
+}
