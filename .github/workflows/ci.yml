@@ -48,8 +48,8 @@ jobs:
             sleep 2
           done
 
-      - name: Сброс и наполнение тестовой базы из дампа
-        run: make reset-test-db
+      - name: Применение миграций к тестовой базе
+        run: diesel migration run --database-url=${{ secrets.TEST_DATABASE_URL }}
 
   lint:
     runs-on: ubuntu-latest
