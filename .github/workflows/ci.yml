@@ -70,7 +70,7 @@ jobs:
           key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
 
       - name: Загрузка target
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v4
         with:
           name: target-artifact
           path: target
@@ -99,7 +99,7 @@ jobs:
           key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
 
       - name: Загрузка target
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v4
         with:
           name: target-artifact
           path: target
@@ -143,7 +143,7 @@ jobs:
           key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
 
       - name: Загрузка target
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v4
         with:
           name: target-artifact
           path: target
