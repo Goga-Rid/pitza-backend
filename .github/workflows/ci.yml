@@ -10,11 +10,10 @@ env:
   CARGO_TERM_COLOR: always
   IMAGE_NAME: gogarid/pitza-backend
 jobs:
-  setup:
+  build:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v3
+      - uses: actions/checkout@v3
       - name: Установка Rust toolchain
         uses: actions-rs/toolchain@v1
         with:
@@ -28,10 +27,12 @@ jobs:
             ~/.cargo/git
             target
           key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
+      - name: Build
+        run: cargo build --all
 
   lint:
     runs-on: ubuntu-latest
-    needs: setup
+    needs: build
     steps:
       - uses: actions/checkout@v3
       - name: Установка Rust toolchain
@@ -39,12 +40,20 @@ jobs:
         with:
           toolchain: stable
           override: true
+      - name: Кэш cargo
+        uses: actions/cache@v3
+        with:
+          path: |
+            ~/.cargo/registry
+            ~/.cargo/git
+            target
+          key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
       - name: Lint (clippy)
         run: cargo clippy -- -D warnings
 
   audit:
     runs-on: ubuntu-latest
-    needs: setup
+    needs: build
     steps:
       - uses: actions/checkout@v3
       - name: Установка Rust toolchain
@@ -52,6 +61,14 @@ jobs:
         with:
           toolchain: stable
           override: true
+      - name: Кэш cargo
+        uses: actions/cache@v3
+        with:
+          path: |
+            ~/.cargo/registry
+            ~/.cargo/git
+            target
+          key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
       - name: Audit
         run: cargo audit || true
 
@@ -79,6 +96,14 @@ jobs:
         with:
           toolchain: stable
           override: true
+      - name: Кэш cargo
+        uses: actions/cache@v3
+        with:
+          path: |
+            ~/.cargo/registry
+            ~/.cargo/git
+            target
+          key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
       - name: Установка diesel_cli
         run: cargo install diesel_cli --no-default-features --features postgres
       - name: Применение миграций
