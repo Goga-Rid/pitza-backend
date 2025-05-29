@@ -43,11 +43,29 @@ jobs:
       - name: Сборка проекта
         run: cargo build --all
 
+      - name: Установка diesel_cli
+        run: cargo install diesel_cli --no-default-features --features postgres
+
+      - name: Установка cargo-audit
+        run: cargo install cargo-audit
+
       - name: Сохранение артефактов target
         uses: actions/upload-artifact@v4
         with:
           name: target-artifact
           path: target
+
+      - name: Сохранение diesel_cli
+        uses: actions/upload-artifact@v4
+        with:
+          name: diesel-cli
+          path: ~/.cargo/bin/diesel
+
+      - name: Сохранение cargo-audit
+        uses: actions/upload-artifact@v4
+        with:
+          name: cargo-audit
+          path: ~/.cargo/bin/cargo-audit  
 
   lint:
     runs-on: ubuntu-latest
@@ -104,6 +122,15 @@ jobs:
           name: target-artifact
           path: target
 
+      - name: Загрузка cargo-audit
+        uses: actions/download-artifact@v4
+        with:
+          name: cargo-audit
+          path: ~/.cargo/bin
+
+      - name: Делаем cargo-audit исполняемым
+        run: chmod +x ~/.cargo/bin/cargo-audit
+
       - name: Аудит зависимостей
         run: cargo audit || true
 
@@ -148,14 +175,16 @@ jobs:
           name: target-artifact
           path: target
 
-      - name: Кэш diesel_cli
-        uses: actions/cache@v3
+      - name: Загрузка diesel_cli
+        uses: actions/download-artifact@v4
         with:
-          path: ~/.cargo/bin/diesel
-          key: ${{ runner.os }}-diesel-cli
+          name: diesel-cli
+          path: ~/.cargo/bin
 
-      - name: Установка diesel_cli
-        run: cargo install diesel_cli --no-default-features --features postgres || true
+      - name: Делаем diesel_cli исполняемым
+        run: chmod +x ~/.cargo/bin/diesel
+
+      
 
       - name: Применение миграций
         env:
@@ -190,6 +219,7 @@ jobs:
       - name: Установка tarpaulin и запуск покрытия
         uses: actions-rs/tarpaulin@v0.1
         with:
+          version: '0.26.1'
           args: "--out Xml"
         continue-on-error: true
 

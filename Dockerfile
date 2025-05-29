@@ -8,7 +8,7 @@ COPY Cargo.lock .
 RUN mkdir src
 RUN echo "fn main() {}" > src/main.rs
 RUN cargo build --release || true
-RUN rm -f target/release/deps/pitza-backend*
+RUN rm -f target/release/deps/pitza_backend*
 
 # Копируем исходники и собираем проект
 COPY . .
@@ -20,11 +20,11 @@ RUN apt-get update && apt-get install -y libpq-dev ca-certificates && rm -rf /va
 WORKDIR /app
 
 # Копируем бинарник из builder
-COPY --from=builder /app/target/release/pitza-backend .
+COPY --from=builder /app/target/release/pitza_backend .
 
 # Копируем миграции
 COPY migrations ./migrations
 
 EXPOSE 8080
 
-CMD ["./pitza-backend"]
+CMD ["./pitza_backend"]
