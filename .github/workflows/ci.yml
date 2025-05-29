@@ -79,7 +79,7 @@ jobs:
         run: cargo tarpaulin --out Xml
 
       - name: Загрузка отчёта покрытия
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: coverage-report
           path: tarpaulin-report.xml
@@ -95,7 +95,7 @@ jobs:
           cargo audit > audit-report.txt
 
       - name: Загрузка отчёта аудита
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: audit-report
           path: audit-report.txt
