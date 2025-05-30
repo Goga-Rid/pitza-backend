@@ -251,7 +251,7 @@ jobs:
     if: github.ref == 'refs/heads/main'
     steps:
       - name: Деплой на сервер
-        uses: appleboy/ssh-action@v0.1.10
+        uses: appleboy/ssh-action@v1.2.2
         with:
           host: ${{ secrets.DEPLOY_HOST }}
           username: ${{ secrets.DEPLOY_USER }}
@@ -259,4 +259,4 @@ jobs:
           port: ${{ secrets.DEPLOY_PORT }}
           script: |
             docker pull $IMAGE_NAME:latest
-            docker-compose -f /path/to/your/docker-compose.yml up -d --remove-orphans
+            docker-compose -f /home/ubuntu/docker-compose.yml up -d --remove-orphans
