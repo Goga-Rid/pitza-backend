@@ -161,7 +161,7 @@ pub async fn login(pool: web::Data<DbPool>, login_data: web::Json<LoginUser>) ->
     })
 }
 
-#[get("/validate")]
+#[get("/api/validate")]
 pub async fn validate_token(req: HttpRequest) -> impl Responder {
     let auth_header = req.headers().get("Authorization");
 
