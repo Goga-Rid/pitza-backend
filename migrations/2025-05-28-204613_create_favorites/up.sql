@@ -12,7 +12,7 @@ CREATE UNIQUE INDEX favorites_user_id_product_id_key ON public.favorites USING b
 ALTER TABLE "public"."favorites" ADD FOREIGN KEY ("product_id") REFERENCES "public"."products"("id") ON DELETE CASCADE;
 ALTER TABLE "public"."favorites" ADD FOREIGN KEY ("user_id") REFERENCES "public"."users"("id") ON DELETE CASCADE;
 
-INSERT INTO "public"."favorites" ("id", "user_id", "product_id") VALUES
-(6, 1, 8),
-(9, 1, 1),
-(10, 1, 4);
+-- INSERT INTO "public"."favorites" ("user_id", "product_id") VALUES
+-- (1, 8),
+-- (1, 1),
+-- (1, 4);

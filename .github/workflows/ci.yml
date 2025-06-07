@@ -260,7 +260,9 @@ jobs:
             docker login -u ${{ secrets.DOCKERHUB_USERNAME }} -p ${{ secrets.DOCKERHUB_TOKEN }}
             # подгрузка последнего образа
             docker pull ${{ secrets.DOCKERHUB_USERNAME }}/pitza-backend:latest
-            # Удаление старых контейнеров
+            # остановка старого контейнера
+            docker-compose -f /home/ubuntu/docker-compose.yml stop backend
+            # Удаление старого контейнера
             docker image prune -f
-            # запуск контейнеров
-            docker-compose -f /home/ubuntu/docker-compose.yml up -d --remove-orphans
+            # запуск нового контейнера
+            docker-compose -f /home/ubuntu/docker-compose.yml up -d --no-deps backend
