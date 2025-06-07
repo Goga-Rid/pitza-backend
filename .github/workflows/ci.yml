@@ -47,11 +47,11 @@ jobs:
       - name: Установка cargo-audit
         run: cargo install cargo-audit
 
-      - name: Сохранение артефактов target
-        uses: actions/upload-artifact@v4
-        with:
-          name: target-artifact
-          path: target
+    #   - name: Сохранение артефактов target
+    #     uses: actions/upload-artifact@v4
+    #     with:
+    #       name: target-artifact
+    #       path: target
 
       - name: Сохранение diesel_cli
         uses: actions/upload-artifact@v4
