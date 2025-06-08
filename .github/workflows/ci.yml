@@ -29,7 +29,7 @@ jobs:
           toolchain: stable
           override: true
 
-      - name: Кэш cargo
+      - name: Кэш cargo + target
         uses: actions/cache@v3
         with:
           path: |
@@ -39,35 +39,10 @@ jobs:
           key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
 
       - name: Сборка проекта
-        run: cargo build --all
-
-      - name: Установка diesel_cli
-        run: cargo install diesel_cli --no-default-features --features postgres
-
-      - name: Установка cargo-audit
-        run: cargo install cargo-audit
-
-      - name: Сохранение артефактов target
-        uses: actions/upload-artifact@v4
-        with:
-          name: target-artifact
-          path: target
-
-      - name: Сохранение diesel_cli
-        uses: actions/upload-artifact@v4
-        with:
-          name: diesel-cli
-          path: ~/.cargo/bin/diesel
-
-      - name: Сохранение cargo-audit
-        uses: actions/upload-artifact@v4
-        with:
-          name: cargo-audit
-          path: ~/.cargo/bin/cargo-audit  
+        run: cargo build --all --release
 
   lint:
     runs-on: ubuntu-latest
-    needs: build
     steps:
       - uses: actions/checkout@v3
 
@@ -83,20 +58,14 @@ jobs:
           path: |
             ~/.cargo/registry
             ~/.cargo/git
+            target
           key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
-
-      - name: Загрузка target
-        uses: actions/download-artifact@v4
-        with:
-          name: target-artifact
-          path: target
 
       - name: Проверка lint (clippy)
         run: cargo clippy -- -D warnings
 
   audit:
     runs-on: ubuntu-latest
-    needs: build
     steps:
       - uses: actions/checkout@v3
 
@@ -114,27 +83,14 @@ jobs:
             ~/.cargo/git
           key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
 
-      - name: Загрузка target
-        uses: actions/download-artifact@v4
-        with:
-          name: target-artifact
-          path: target
-
-      - name: Загрузка cargo-audit
-        uses: actions/download-artifact@v4
-        with:
-          name: cargo-audit
-          path: ~/.cargo/bin
-
-      - name: Делаем cargo-audit исполняемым
-        run: chmod +x ~/.cargo/bin/cargo-audit
+      - name: Установка cargo-audit
+        run: cargo install cargo-audit
 
       - name: Аудит зависимостей
         run: cargo audit || true
 
   test:
     runs-on: ubuntu-latest
-    needs: build
     services:
       postgres:
         image: postgres:15
@@ -159,30 +115,17 @@ jobs:
           toolchain: stable
           override: true
 
-      - name: Кэш cargo
+      - name: Кэш cargo + target
         uses: actions/cache@v3
         with:
           path: |
             ~/.cargo/registry
             ~/.cargo/git
+            target
           key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
 
-      - name: Загрузка target
-        uses: actions/download-artifact@v4
-        with:
-          name: target-artifact
-          path: target
-
-      - name: Загрузка diesel_cli
-        uses: actions/download-artifact@v4
-        with:
-          name: diesel-cli
-          path: ~/.cargo/bin
-
-      - name: Делаем diesel_cli исполняемым
-        run: chmod +x ~/.cargo/bin/diesel
-
-      
+      - name: Установка diesel_cli
+        run: cargo install diesel_cli --no-default-features --features postgres
 
       - name: Применение миграций
         env:
@@ -192,11 +135,10 @@ jobs:
       - name: Тестирование
         env:
           DATABASE_URL: postgres://postgres:postgres@localhost/pitza_test
-        run: cargo test --all
+        run: cargo test --release --all
 
   coverage:
     runs-on: ubuntu-latest
-    needs: test
     steps:
       - uses: actions/checkout@v3
 
@@ -212,6 +154,7 @@ jobs:
           path: |
             ~/.cargo/registry
             ~/.cargo/git
+            target
           key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
 
       - name: Установка tarpaulin и запуск покрытия
@@ -228,7 +171,7 @@ jobs:
 
   build_and_push:
     runs-on: ubuntu-latest
-    needs: test
+    needs: [test]
     steps:
       - uses: actions/checkout@v3
 
@@ -245,7 +188,7 @@ jobs:
 
   deploy:
     runs-on: ubuntu-latest
-    needs: build_and_push
+    needs: [build_and_push]
     if: github.ref == 'refs/heads/main'
     steps:
       - name: Деплой на сервер
@@ -256,13 +199,8 @@ jobs:
           key: ${{ secrets.SERVER_SSH_KEY }}
           port: ${{ secrets.SERVER_PORT }}
           script: |
-            # логин в Docker Hub
             docker login -u ${{ secrets.DOCKERHUB_USERNAME }} -p ${{ secrets.DOCKERHUB_TOKEN }}
-            # подгрузка последнего образа
             docker pull ${{ secrets.DOCKERHUB_USERNAME }}/pitza-backend:latest
-            # остановка старого контейнера
             docker-compose -f /home/ubuntu/docker-compose.yml stop backend
-            # Удаление старого контейнера
             docker image prune -f
-            # запуск нового контейнера
             docker-compose -f /home/ubuntu/docker-compose.yml up -d --no-deps backend
