@@ -202,8 +202,15 @@ jobs:
           key: ${{ secrets.SERVER_SSH_KEY }}
           port: ${{ secrets.SERVER_PORT }}
           script: |
+            # Логин в Docker Hub
             docker login -u ${{ secrets.DOCKERHUB_USERNAME }} -p ${{ secrets.DOCKERHUB_TOKEN }}
+            # Подтягиваем последний образ backend
             docker pull ${{ secrets.DOCKERHUB_USERNAME }}/pitza-backend:latest
+            # Остановка backend
             docker-compose -f /home/ubuntu/docker-compose.yml stop backend
+            # Очистка остановленных контейнеров
+            docker container prune -f
+            # Перезапускаем только backend
+            docker-compose -f /home/ubuntu/docker-compose.yml up -d --force-recreate --no-deps backend
+            # Очистка неиспользуемых образов
             docker image prune -f
-            docker-compose -f /home/ubuntu/docker-compose.yml up -d --no-deps backend
