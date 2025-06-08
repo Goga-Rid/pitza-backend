@@ -47,23 +47,23 @@ jobs:
       - name: Установка cargo-audit
         run: cargo install cargo-audit
 
-    #   - name: Сохранение артефактов target
-    #     uses: actions/upload-artifact@v4
-    #     with:
-    #       name: target-artifact
-    #       path: target
+      - name: Сохранение артефактов target
+        uses: actions/upload-artifact@v4
+        with:
+          name: target-artifact
+          path: target
 
-    #   - name: Сохранение diesel_cli
-    #     uses: actions/upload-artifact@v4
-    #     with:
-    #       name: diesel-cli
-    #       path: ~/.cargo/bin/diesel
+      - name: Сохранение diesel_cli
+        uses: actions/upload-artifact@v4
+        with:
+          name: diesel-cli
+          path: ~/.cargo/bin/diesel
 
-    #   - name: Сохранение cargo-audit
-    #     uses: actions/upload-artifact@v4
-    #     with:
-    #       name: cargo-audit
-    #       path: ~/.cargo/bin/cargo-audit  
+      - name: Сохранение cargo-audit
+        uses: actions/upload-artifact@v4
+        with:
+          name: cargo-audit
+          path: ~/.cargo/bin/cargo-audit  
 
   lint:
     runs-on: ubuntu-latest
