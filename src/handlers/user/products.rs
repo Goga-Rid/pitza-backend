@@ -5,7 +5,7 @@ use actix_web::{get, web, HttpResponse, Responder};
 use diesel::prelude::*;
 use std::collections::HashMap;
 
-#[get("/api/user/products")]
+#[get("/api/products")]
 pub async fn get_products(pool: web::Data<DbPool>) -> impl Responder {
     let mut conn = pool.get().unwrap();
     let products: Vec<Product> = products::table.load(&mut conn).unwrap();
