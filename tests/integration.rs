@@ -62,7 +62,7 @@ async fn test_get_products() {
     .await;
 
     let req = test::TestRequest::get()
-        .uri("/api/user/products")
+        .uri("/api/products")
         .to_request();
     let resp = test::call_service(&app, req).await;
     assert!(resp.status().is_success());
