@@ -37,6 +37,7 @@ pub struct Product {
     pub category: String,
     pub image_url: Option<String>,
     pub available: bool,
+    pub weight: Option<i32>,
     pub created_at: NaiveDateTime,
 }
 
