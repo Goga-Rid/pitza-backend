@@ -49,7 +49,7 @@ diesel::table! {
         category -> Text,
         image_url -> Nullable<Text>,
         available -> Bool,
-        weight -> Int4,
+        weight -> Nullable<Integer>,
         created_at -> Timestamp,
     }
 }

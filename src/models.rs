@@ -50,6 +50,7 @@ pub struct NewProduct {
     pub category: String,
     pub image_url: Option<String>,
     pub available: Option<bool>,
+    pub weight: Option<i32>,
 }
 
 // FAVORITES
